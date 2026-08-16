@@ -1,0 +1,171 @@
+﻿@model List<ResultPackageDto>
+@{
+    ViewData["Title"] = "PackageList";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="flex items-center mb-16" style="justify-content:space-between; flex-wrap:wrap; gap:12px;">
+    <div>
+        <h2 class="font-display" style="font-size:19px;">Package Management</h2>
+        <p class="text-tertiary" style="font-size:12.5px; margin:2px 0 0;">Abonelik paketlerini görüntüle, ekle ve düzenle.</p>
+    </div>
+    <button class="btn btn-primary" data-modal-open="packageFormModal" onclick="openPackageForm()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14" /></svg>
+        Add Package
+    </button>
+</div>
+
+<div class="card" data-table-root>
+    <div class="table-toolbar">
+        <div class="field-search">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></svg>
+            <input type="text" data-table-search placeholder="Paket ara..." />
+        </div>
+        <div class="toolbar-filters">
+            <select class="field-select" data-table-filter="status">
+                <option value="">Tüm Durumlar</option>
+                <option value="active">Active</option>
+                <option value="passive">Passive</option>
+            </select>
+        </div>
+    </div>
+
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th data-sort-key="name">Package Name <span class="sort-arrow">↕</span></th>
+                <th>Package Level</th>
+                <th data-sort-key="price">Price <span class="sort-arrow">↕</span></th>
+                <th>Status</th>
+                <th style="text-align:right;">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var p in Model)
+            {
+                <tr data-status="@(p.IsActive ? "active" : "passive")">
+                    <td data-col="name" style="font-weight:600;">@p.PackageName</td>
+                    <td><span class="badge badge-violet">Level @p.PackageLevel</span></td>
+                    <td data-col="price" class="text-mono">₺@p.Price / ay</td>
+                    <td>
+                        @if (p.IsActive)
+                        {
+                            <span class="badge badge-success">Active</span>
+                        }
+                        else
+                        {
+                            <span class="badge badge-neutral">Passive</span>
+                        }
+                    </td>
+                    <td>
+                        <div class="row-actions">
+                            <button class="btn btn-outline btn-icon btn-sm" title="Edit"
+                                    data-modal-open="packageFormModal"
+                                    onclick="openPackageForm('@p.PackageId','@p.PackageName','@p.PackageLevel'
+                                    ,'@p.Price.ToString(System.Globalization.CultureInfo.InvariantCulture)', @p.IsActive.ToString().ToLower())">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.1 2.1 0 0 1 3 3L12 15l-4 1 1-4Z" /></svg>
+                            </button>
+                            <button class="btn btn-danger btn-icon btn-sm" title="Delete"
+                                    data-confirm-delete data-name="@p.PackageName"
+                                    data-modal-open="deletePackageModal" data-target-form="#deletePackageForm-@p.PackageId">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6" /></svg>
+                            </button>
+                            <form id="deletePackageForm-@p.PackageId" asp-area="Admin" asp-controller="Package" asp-action="DeletePackage" asp-route-id="@p.PackageId" method="post" style="display:none;"></form>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@* ---------------- Add / Edit package modal ---------------- *@
+<div class="modal-backdrop" id="packageFormModal">
+    <div class="modal-panel">
+        <form id="packageForm" asp-area="Admin" asp-controller="Package" asp-action="SavePackage" method="post">
+            <div class="modal-header">
+                <h3 id="packageFormTitle">Add Package</h3>
+                <button type="button" class="modal-close" data-modal-close>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12" /></svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" name="PackageId" id="packageId" />
+                <div class="form-grid single">
+                    <div class="field">
+                        <label>Package Name <span class="req">*</span></label>
+                        <input class="input" type="text" name="PackageName" id="packageName" placeholder="Örn. Premium" required />
+                        <span class="error-msg">Paket adı zorunludur.</span>
+                    </div>
+                    <div class="field">
+                        <label>Package Level <span class="req">*</span></label>
+                        <input class="input" type="text" name="PackageLevel" id="packageLevel" placeholder="Örn. 4" required />
+                          
+                    </div>
+                    <div class="field">
+                        <label>Price <span class="req">*</span></label>
+                        <input class="input" type="text" name="Price" id="packagePrice" placeholder="Örn. ₺89.90" required />
+                    </div>
+                    <div class="field">
+                        <label>Is Active</label>
+                        <label class="switch">
+                            <input type="checkbox" name="IsActive" value="true" id="packageIsActive" checked />
+                            <span class="track"></span>
+                            <span class="text-secondary" style="font-size:13px;">Paket kullanıcıya açık</span>
+                        </label>
+                        <input type="hidden" name="IsActive" value="false" />
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" data-modal-close>Vazgeç</button>
+                <button type="submit" class="btn btn-primary">Kaydet</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@* ---------------- Delete confirmation modal ---------------- *@
+<div class="modal-backdrop" id="deletePackageModal">
+    <div class="modal-panel">
+        <div class="modal-header">
+            <h3>Paketi Sil</h3>
+            <button class="modal-close" data-modal-close>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12" /></svg>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="confirm-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" /></svg>
+            </div>
+            <p style="margin:0 0 4px; font-size:14px; font-weight:600;">"<span data-confirm-name>bu paketi</span>" silinsin mi?</p>
+            <p class="text-tertiary" style="font-size:12.5px; margin:0;">Bu pakete abone kullanıcılar etkilenebilir. Bu işlem geri alınamaz.</p>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" data-modal-close>Vazgeç</button>
+            <button class="btn btn-danger" data-confirm-submit>Sil</button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function openPackageForm(id, name, level, price, active) {
+            document.getElementById('packageFormTitle').textContent = id ? 'Edit Package' : 'Add Package';
+            document.getElementById('packageId').value = id || '';
+            document.getElementById('packageName').value = name || '';
+            document.getElementById('packageLevel').value = level || '';
+            document.getElementById('packagePrice').value = price || '';
+            document.getElementById('packageIsActive').checked = active === undefined ? true : active;
+        }
+          document.getElementById('packageForm').addEventListener('submit', function () {
+
+            const priceInput = document.getElementById('packagePrice');
+
+            // 35.4 -> 35,4
+            priceInput.value = priceInput.value.replace('.', ',');
+
+        });
+    </script>
+}
+

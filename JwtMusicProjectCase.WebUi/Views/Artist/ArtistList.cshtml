@@ -1,0 +1,88 @@
+﻿@model List<ArtistListDto>
+@{
+    ViewData["Title"] = "ArtistList";
+    Layout = "~/Views/Shared/_MainLayout.cshtml";
+}
+
+<div>
+    <div class="page-content page-container" id="page-content">
+        <div class="padding sr" id="list" data-plugin="list">
+            <div class="page-hero">
+                <div class="media bg-media">
+                    <div class="media-content" style="background-image:url(/Bepop/assets/img/b6.jpg)"></div>
+                </div>
+                <div class="pos-rlt">
+                    <h1 class="display-3 font-weight-bold text-white">@Model.Count Artists</h1>
+                </div>
+            </div>
+            <div class="d-lg-flex pos-rlt">
+                <div class="flex">
+                    <div class="pb-4 d-flex sr-item" id="filter-tag">
+                        <div class="no-shrink my-2">Countries</div>
+                        <div class="mx-3">
+                            <a href="#" class="btn btn-sm btn-white m-1">All countries</a>
+                            @foreach (var country in Model.Where(x => !string.IsNullOrEmpty(x.Country))
+                                                        .Select(x => x.Country)
+                                                        .Distinct())
+                            {
+                                <a href="#" class="btn btn-sm btn-white m-1">@country</a>
+                            }
+                        </div>
+                    </div>
+                    <div class="row list media-circle hide">
+                        @foreach (var item in Model)
+                        {
+                            <div class="col-4 col-sm-4 col-md-3 col-lg-3 py-3" data-id="@item.ArtistId" data-category="other" data-tag="@item.Country" data-source="https://audio-ssl.itunes.apple.com/apple-assets-us-std-000001/AudioPreview128/v4/eb/e4/2e/ebe42efd-bbce-75cd-63a2-5813637e25bb/mzaf_6529454398103897146.plus.aac.p.m4a">
+                                <div class="list-item r">
+                                    <div class="media ">
+                                        <a href="/Artist/ArtistDetail/@item.ArtistId" class="ajax media-content " style="background-image:url(@item.ArtistImageUrl)">
+                                        </a>
+                                        <div class="media-action ">
+                                        </div>
+                                    </div>
+                                    <div class="list-content text-center">
+                                        <div class="list-body ">
+                                            <a href="/Artist/ArtistDetail/@item.ArtistId" class="list-subtitle d-block text-muted h-1x subtitle ajax ">
+                                                @item.ArtistName
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                    <div class="d-flex py-3 justify-content-center">
+                        <ul class="pagination pagination-sm"></ul>
+                    </div>
+                </div>
+                <div style="min-width: 4rem"></div>
+                <div class="w-xl w-auto-sm no-shrink">
+                    <div class="sticky">
+                        <div class="list mb-5">
+                            <div class="list-item list-overlay r">
+                                <div class="media ">
+                                    <a href="item.detail.html#" class="ajax media-content " style="background-image:url(/Bepop/assets/img/b16.jpg)">
+                                    </a>
+                                    <div class="media-action ">
+                                    </div>
+                                </div>
+                                <div class="list-content p-5 text-center">
+                                    <div class="list-body ">
+                                        <a href="item.detail.html#" class="list-title title ajax h3 font-weight-bold">
+                                            Hip-Hop Chart 100
+                                        </a>
+                                        <a href="artist.detail.html#" class="list-subtitle d-block text-muted h-1x subtitle ajax ">
+                                            The hottest rap right now.
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        @await Component.InvokeAsync("_MostListenedSongsComponentPartial")
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

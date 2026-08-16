@@ -1,0 +1,41 @@
+﻿@model List<ResultSongDto>
+
+<div class="col-12 col-xl-7">
+    <div class="card mb-16">
+        <div class="card-header">
+            <h3>Son Eklenen Şarkılar</h3>
+            <a asp-controller="Song" asp-action="SongList" asp-area="Admin" class="btn btn-ghost btn-sm">Tümünü Gör</a>
+        </div>
+        <table class="data-table">
+            <thead>
+                <tr><th>Şarkı</th><th>Genre</th><th>Eklenme</th><th>Dinlenme</th></tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td class="cell-media">
+                            @if (item.CoverImageUrl != null)
+                            {
+                                <img src="@item.CoverImageUrl" alt="@item.SongName" />
+                            }
+
+                            else
+                            {
+                                <div class="thumb-fallback">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 18V5l12-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" /></svg>
+
+                                </div>
+                            }
+                            <div><div class="primary">@item.SongName</div><div class="secondary">@item.ArtistName</div></div>
+                        </td>
+                        <td><span class="badge badge-violet">@item.GenreName</span></td>
+                        <td class="text-secondary">@item.ReleaseDate.ToString("dd MMM yyyy")</td>
+                        <td class="text-mono">@item.ListenCount</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+</div>

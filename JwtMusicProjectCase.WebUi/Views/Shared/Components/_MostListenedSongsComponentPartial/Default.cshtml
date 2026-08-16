@@ -1,0 +1,35 @@
+﻿@model List<ResultSongDto>
+
+<h6 class="text text-muted sr-item">Top tracks</h6>
+<div class="row list-row">
+    @foreach(var item in Model){
+    <div class="col-12" data-id="@item.SongId" data-category="@item.GenreName" data-tag="England" data-source="https://audio-ssl.itunes.apple.com/apple-assets-us-std-000001/AudioPreview128/v4/c9/1f/83/c91f83b2-38c7-3a93-fabe-2da29dc5c2a8/mzaf_5271705754245759426.plus.aac.p.m4a">
+        <div class="list-item r">
+            <div class="media ">
+                <a href="item.detail.html#408576846" class="ajax media-content " style="background-image:url(@item.CoverImageUrl)">
+                </a>
+                <div class="media-action ">
+                    <button class="btn btn-icon no-bg no-shadow hide-row" data-toggle-class>
+                        <i data-feather="heart" class="active-fill"></i>
+                    </button>
+                    <button class="btn btn-raised btn-icon btn-rounded bg--white btn-play"></button>
+                    <button class="btn btn-icon no-bg no-shadow hide-row btn-more" data-toggle="dropdown">
+                        <i data-feather="more-horizontal"></i>
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-right"></div>
+                </div>
+            </div>
+            <div class="list-content ">
+                <div class="list-body ">
+                    <a href="item.detail.html#408576846" class="list-title title ajax h-1x">
+                        @item.SongName
+                    </a>
+                    <a href="artist.detail.html#408576846" class="list-subtitle d-block text-muted h-1x subtitle ajax ">
+                       @item.ArtistName
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+   }
+</div>

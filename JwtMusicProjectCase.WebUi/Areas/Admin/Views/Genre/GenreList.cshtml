@@ -1,0 +1,190 @@
+﻿@model List<ResultGenreDto>
+@{
+    ViewData["Title"] = "GenreList";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+@{
+    int i = 0;
+    string[] chipVariants = { "chip-accent", "chip-violet", "chip-success", "chip-warning" };
+}
+
+<style>
+    .genre-icon {
+        width: 34px;
+        height: 34px;
+        border-radius: var(--radius-sm);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .chip-accent {
+        background: var(--accent-soft);
+        color: var(--accent-strong);
+    }
+
+    .chip-violet {
+        background: var(--violet-soft);
+        color: var(--violet);
+    }
+
+    .chip-success {
+        background: var(--success-soft);
+        color: var(--success);
+    }
+
+    .chip-warning {
+        background: var(--warning-soft);
+        color: var(--warning);
+    }
+
+    .genre-name-cell {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+</style>
+
+<div class="flex items-center mb-16" style="justify-content:space-between; flex-wrap:wrap; gap:12px;">
+    <div>
+        <h2 class="font-display" style="font-size:19px;">Genre Management</h2>
+        <p class="text-tertiary" style="font-size:12.5px; margin:2px 0 0;">Müzik türlerini görüntüle, ekle ve düzenle.</p>
+    </div>
+    <button class="btn btn-primary" data-modal-open="genreFormModal" onclick="openGenreForm()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14" /></svg>
+        Add Genre
+    </button>
+</div>
+
+<div class="stat-grid" style="grid-template-columns:260px;">
+    <div class="stat-card">
+        <div class="stat-icon">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" /></svg>
+        </div>
+        <div class="stat-value">@Model.Count</div>
+        <div class="stat-label">Toplam Genre</div>
+    </div>
+</div>
+
+<div class="card" data-table-root>
+    <div class="table-toolbar">
+        <div class="field-search">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></svg>
+            <input type="text" data-table-search placeholder="Genre ara..." />
+        </div>
+    </div>
+
+    <div style="overflow-x:auto;">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th data-sort-key="name">Genre Name <span class="sort-arrow">↕</span></th>
+                    <th style="text-align:right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var g in Model)
+                {
+                    i++;
+                    var chip = chipVariants[i % chipVariants.Length];
+                    <tr>
+                        <td data-col="name">
+                            <div class="genre-name-cell">
+                                <div class="genre-icon @chip">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" /></svg>
+                                </div>
+                                <span class="primary" style="font-weight:600;">@g.GenreName</span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="row-actions">
+                                <button class="btn btn-outline btn-icon btn-sm" title="Edit"
+                                        data-modal-open="genreFormModal"
+                                        onclick="openGenreForm('@g.GenreId','@g.GenreName')">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.1 2.1 0 0 1 3 3L12 15l-4 1 1-4Z" /></svg>
+                                </button>
+                                <button class="btn btn-danger btn-icon btn-sm" title="Delete"
+                                        data-confirm-delete data-name="@g.GenreName"
+                                        data-modal-open="deleteGenreModal" data-target-form="#deleteGenreForm-@g.GenreId">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6" /></svg>
+                                </button>
+                                <form id="deleteGenreForm-@g.GenreId" asp-area="Admin" asp-controller="Genre" asp-action="DeleteGenre"
+                                      asp-route-id="@g.GenreId" method="post" style="display:none;"></form>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="table-footer">
+        <span class="text-tertiary" style="font-size:12.5px;">@Model.Count sonuçtan 1–@Model.Count arası gösteriliyor</span>
+        <div class="pagination">
+            <button class="page-btn" disabled>‹</button>
+            <button class="page-btn active">1</button>
+            <button class="page-btn">›</button>
+        </div>
+    </div>
+</div>
+
+@* ---------------- Add / Edit genre modal (kept intentionally minimal — single field, fine as a modal) ---------------- *@
+<div class="modal-backdrop" id="genreFormModal">
+    <div class="modal-panel">
+        <form id="genreForm" asp-area="Admin" asp-controller="Genre" asp-action="SaveGenre" method="post">
+            <div class="modal-header">
+                <h3 id="genreFormTitle">Add Genre</h3>
+                <button type="button" class="modal-close" data-modal-close>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12" /></svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" name="GenreId" id="genreId" />
+                <div class="field">
+                    <label>Genre Name <span class="req">*</span></label>
+                    <input class="input" type="text" name="GenreName" id="genreName" placeholder="Örn. Pop" required />
+                    <span class="error-msg">Genre adı zorunludur.</span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" data-modal-close>Vazgeç</button>
+                <button type="submit" class="btn btn-primary">Kaydet</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@* ---------------- Delete confirmation modal ---------------- *@
+<div class="modal-backdrop" id="deleteGenreModal">
+    <div class="modal-panel">
+        <div class="modal-header">
+            <h3>Genre'ı Sil</h3>
+            <button class="modal-close" data-modal-close>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12" /></svg>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="confirm-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" /></svg>
+            </div>
+            <p style="margin:0 0 4px; font-size:14px; font-weight:600;">"<span data-confirm-name>bu genre'ı</span>" silinsin mi?</p>
+            <p class="text-tertiary" style="font-size:12.5px; margin:0;">Bu genre'a bağlı şarkılar etkilenebilir.</p>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" data-modal-close>Vazgeç</button>
+            <button class="btn btn-danger" data-confirm-submit>Sil</button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function openGenreForm(id, name) {
+            document.getElementById('genreFormTitle').textContent = id ? 'Edit Genre' : 'Add Genre';
+            document.getElementById('genreId').value = id || '';
+            document.getElementById('genreName').value = name || '';
+        }
+    </script>
+}

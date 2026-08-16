@@ -1,0 +1,980 @@
+﻿@using JwtMusicProjectCase.WebUi.Dtos.RecommendationDtos
+@model List<ResultSongDto>
+@{
+    ViewData["Title"] = "Songs";
+    Layout = "~/Views/Shared/_MainLayout.cshtml";
+
+    var genres = Model?.Select(s => s.GenreName).Distinct().OrderBy(g => g).ToList();
+
+    var userPackageLevel = (int)ViewBag.UserPackageLevel;
+
+    var isEliteMember = ViewBag.IsEliteMember != null && (bool)ViewBag.IsEliteMember;
+
+    var recommendedSongs = ViewBag.RecommendedSongs as List<RecommendationDto>;
+}
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+    :root {
+        --bg: #0a0a0f;
+        --panel: #121218;
+        --panel-2: #17171f;
+        --line: #24242e;
+        --text: #f5f5f7;
+        --muted: #86869a;
+        --accent-a: #ff3d68;
+        --accent-b: #7b2ff7;
+        --accent-c: #2de0c6;
+        --gold: #f0c869;
+    }
+
+    #page-content {
+        padding-top: 72px;
+    }
+
+    .songs-hero {
+        position: relative;
+        width: 100%;
+        padding: 2.6rem 2rem 1.8rem;
+        text-align: center;
+        overflow: hidden;
+        background: radial-gradient(60% 100% at 50% 0%, rgba(123, 47, 247, .25), transparent 70%), var(--panel);
+        border-bottom: 1px solid var(--line);
+        font-family: 'Inter', -apple-system, sans-serif;
+        color: var(--text);
+    }
+
+        .songs-hero h1 {
+            font-family: 'Unbounded', sans-serif;
+            font-weight: 800;
+            font-size: 1.5rem;
+            margin: 0 0 .4rem;
+        }
+
+        .songs-hero p {
+            margin: 0 0 .3rem;
+            color: var(--muted);
+            font-size: .86rem;
+        }
+
+        .songs-hero .hero-note {
+            font-size: .76rem;
+            color: var(--accent-c);
+        }
+
+    /* ================================================= */
+    /* YENİ: Elit üyelere özel "Bunları da sevebilirsiniz" */
+    /* ================================================= */
+    .elite-recs-section {
+        max-width: 1180px;
+        margin: 0 auto;
+        padding: 1.8rem 2rem 0;
+        font-family: 'Inter', -apple-system, sans-serif;
+        color: var(--text);
+    }
+
+    .elite-recs-card {
+        position: relative;
+        border-radius: 18px;
+        padding: 1.4rem 1.5rem 1.6rem;
+        background: linear-gradient(135deg, rgba(240, 200, 105, .08), rgba(123, 47, 247, .06) 60%, var(--panel));
+        border: 1px solid rgba(240, 200, 105, .28);
+        overflow: hidden;
+    }
+
+        .elite-recs-card::before {
+            content: "";
+            position: absolute;
+            top: -40%;
+            right: -10%;
+            width: 260px;
+            height: 260px;
+            background: radial-gradient(circle, rgba(240, 200, 105, .18), transparent 70%);
+            pointer-events: none;
+        }
+
+    .elite-recs-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: .8rem;
+        margin-bottom: 1.1rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    .elite-recs-title-wrap {
+        display: flex;
+        align-items: center;
+        gap: .6rem;
+    }
+
+        .elite-recs-title-wrap svg {
+            width: 18px;
+            height: 18px;
+            color: var(--gold);
+            flex-shrink: 0;
+        }
+
+    .elite-recs-title {
+        font-family: 'Unbounded', sans-serif;
+        font-weight: 700;
+        font-size: 1.05rem;
+        margin: 0;
+        color: var(--text);
+    }
+
+    .elite-badge {
+        font-size: .62rem;
+        font-weight: 700;
+        letter-spacing: .07em;
+        text-transform: uppercase;
+        padding: .3rem .6rem;
+        border-radius: 999px;
+        color: #0a0a0f;
+        background: linear-gradient(95deg, var(--gold), #f7e2a4);
+        white-space: nowrap;
+    }
+
+    .elite-recs-sub {
+        margin: .2rem 0 0;
+        font-size: .78rem;
+        color: var(--muted);
+        position: relative;
+        z-index: 1;
+    }
+
+    .elite-recs-track {
+        display: grid;
+        grid-auto-flow: column;
+        grid-auto-columns: minmax(150px, 170px);
+        gap: .9rem;
+        overflow-x: auto;
+        padding-bottom: .3rem;
+        position: relative;
+        z-index: 1;
+        scrollbar-width: thin;
+    }
+
+        .elite-recs-track::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .elite-recs-track::-webkit-scrollbar-thumb {
+            background: var(--line);
+            border-radius: 999px;
+        }
+
+    .elite-rec-card {
+        background: var(--panel-2);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: .7rem;
+        transition: border-color .18s ease, transform .18s ease;
+    }
+
+        .elite-rec-card:hover {
+            border-color: var(--gold);
+            transform: translateY(-2px);
+        }
+
+    .elite-rec-cover {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 1 / 1;
+        border-radius: 9px;
+        overflow: hidden;
+        margin-bottom: .55rem;
+        background: var(--panel);
+    }
+
+        .elite-rec-cover img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+    .elite-rec-play-btn {
+        position: absolute;
+        right: .4rem;
+        bottom: .4rem;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(95deg, var(--gold), var(--accent-a) 140%);
+        color: #0a0a0f;
+        cursor: pointer;
+        transition: transform .15s ease, filter .15s ease;
+    }
+
+        .elite-rec-play-btn:hover {
+            transform: scale(1.06);
+            filter: brightness(1.08);
+        }
+
+        .elite-rec-play-btn svg {
+            width: 12px;
+            height: 12px;
+        }
+
+    .elite-rec-name {
+        font-family: 'Unbounded', sans-serif;
+        font-weight: 700;
+        font-size: .78rem;
+        margin: 0 0 .15rem;
+        color: var(--text);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .elite-rec-artist {
+        font-size: .7rem;
+        color: var(--muted);
+        margin: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .elite-recs-card.is-locked {
+        padding-bottom: 1.1rem;
+    }
+
+        .elite-recs-card.is-locked .elite-recs-sub {
+            display: none;
+        }
+
+    /* --- Elit olmayan üyeler için kompakt kilitli banner --- */
+    .elite-locked-teaser {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        gap: .9rem;
+        padding: .1rem 0 0;
+    }
+
+    .elite-locked-icon {
+        flex-shrink: 0;
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        background: rgba(10, 10, 15, .85);
+        border: 1px solid var(--gold);
+        box-shadow: 0 0 0 3px rgba(240, 200, 105, .13);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+        .elite-locked-icon svg {
+            width: 16px;
+            height: 16px;
+            color: var(--gold);
+        }
+
+    .elite-locked-text {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .elite-locked-title {
+        font-family: 'Unbounded', sans-serif;
+        font-weight: 700;
+        font-size: .8rem;
+        margin: 0 0 .1rem;
+        color: var(--text);
+    }
+
+    .elite-locked-sub {
+        font-size: .73rem;
+        color: var(--muted);
+        margin: 0;
+        line-height: 1.3;
+    }
+
+    .elite-locked-cta {
+        flex-shrink: 0;
+        font-family: 'Inter', sans-serif;
+        font-weight: 600;
+        font-size: .74rem;
+        letter-spacing: .01em;
+        color: #0a0a0f;
+        background: linear-gradient(95deg, var(--gold), #f7e2a4);
+        border: none;
+        border-radius: 999px;
+        padding: .48rem 1rem;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: transform .15s ease, filter .15s ease;
+    }
+
+        .elite-locked-cta:hover {
+            transform: translateY(-1px);
+            filter: brightness(1.05);
+        }
+
+    @@media (max-width: 480px) {
+        .elite-locked-teaser {
+            flex-wrap: wrap;
+        }
+
+        .elite-locked-cta {
+            margin-left: calc(38px + .9rem);
+        }
+    }
+
+    /* --- Elit ama öneri yok durumu --- */
+    .elite-empty-panel {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        gap: .5rem;
+        padding: 1.6rem 1rem 1.2rem;
+    }
+
+    .elite-empty-icon {
+        width: 46px;
+        height: 46px;
+        border-radius: 50%;
+        background: rgba(10, 10, 15, .85);
+        border: 1px solid var(--line);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+        .elite-empty-icon svg {
+            width: 20px;
+            height: 20px;
+            color: var(--muted);
+        }
+
+    .elite-empty-title {
+        font-family: 'Unbounded', sans-serif;
+        font-weight: 700;
+        font-size: .86rem;
+        margin: 0;
+        color: var(--text);
+    }
+
+    .elite-empty-sub {
+        font-size: .75rem;
+        color: var(--muted);
+        margin: 0;
+        max-width: 320px;
+        line-height: 1.4;
+    }
+
+    @@media (max-width: 560px) {
+        .elite-recs-section {
+            padding: 1.4rem 1.2rem 0;
+        }
+
+        .elite-recs-head {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: .4rem;
+        }
+    }
+    /* ================================================= */
+    /* /YENİ                                              */
+    /* ================================================= */
+
+    .songs-container {
+        max-width: 1180px;
+        margin: 0 auto;
+        padding: 2rem 2rem 3.4rem;
+        font-family: 'Inter', -apple-system, sans-serif;
+        color: var(--text);
+    }
+
+    /* --- Toolbar: search + filters --- */
+    .songs-toolbar {
+        display: flex;
+        align-items: center;
+        gap: .8rem;
+        flex-wrap: wrap;
+        margin-bottom: 1.6rem;
+    }
+
+    .search-box {
+        position: relative;
+        flex: 1 1 260px;
+        min-width: 220px;
+    }
+
+        .search-box svg {
+            position: absolute;
+            left: .9rem;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 15px;
+            height: 15px;
+            color: var(--muted);
+            pointer-events: none;
+        }
+
+    .search-input {
+        width: 100%;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: .72rem .9rem .72rem 2.4rem;
+        font-family: 'Inter', sans-serif;
+        font-size: .85rem;
+        color: var(--text);
+        outline: none;
+        transition: border-color .18s ease;
+    }
+
+        .search-input::placeholder {
+            color: var(--muted);
+        }
+
+        .search-input:focus {
+            border-color: var(--accent-b);
+        }
+
+    .filter-select {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: .72rem 1rem;
+        font-family: 'Inter', sans-serif;
+        font-weight: 500;
+        font-size: .82rem;
+        color: var(--text);
+        outline: none;
+        cursor: pointer;
+        transition: border-color .18s ease;
+    }
+
+        .filter-select:focus,
+        .filter-select:hover {
+            border-color: var(--accent-b);
+        }
+
+    .results-count {
+        font-size: .78rem;
+        color: var(--muted);
+        margin-bottom: 1rem;
+    }
+
+    /* --- Song grid --- */
+    .song-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+        gap: 1.1rem;
+    }
+
+    .song-card {
+        position: relative;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        padding: 1rem;
+        transition: border-color .18s ease, transform .18s ease;
+    }
+
+        .song-card:not(.locked):hover {
+            border-color: var(--accent-b);
+            transform: translateY(-2px);
+        }
+
+        .song-card.locked {
+            cursor: pointer;
+        }
+
+        .song-card.shake {
+            animation: shake .32s ease;
+        }
+
+    @@keyframes shake {
+        0%, 100% {
+            transform: translateX(0);
+        }
+
+        25% {
+            transform: translateX(-4px);
+        }
+
+        75% {
+            transform: translateX(4px);
+        }
+    }
+
+    .song-cover {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 1 / 1;
+        border-radius: 12px;
+        overflow: hidden;
+        margin-bottom: .85rem;
+        background: var(--panel-2);
+    }
+
+        .song-cover img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            transition: filter .18s ease;
+        }
+
+    .song-card.locked .song-cover img {
+        filter: brightness(.38) saturate(.7) blur(.3px);
+    }
+
+    .cover-play-btn {
+        position: absolute;
+        right: .55rem;
+        bottom: .55rem;
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(95deg, var(--accent-c), var(--accent-a) 130%);
+        color: #0a0a0f;
+        cursor: pointer;
+        transition: transform .15s ease, filter .15s ease;
+    }
+
+        .cover-play-btn:hover {
+            transform: scale(1.06);
+            filter: brightness(1.08);
+        }
+
+        .cover-play-btn svg {
+            width: 14px;
+            height: 14px;
+        }
+
+    .lock-overlay {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: .4rem;
+        background: rgba(10, 10, 15, .28);
+    }
+
+        .lock-overlay .lock-icon {
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            background: rgba(10, 10, 15, .85);
+            border: 1px solid var(--accent-a);
+            box-shadow: 0 0 0 4px rgba(255, 61, 104, .15), 0 8px 20px rgba(0, 0, 0, .5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+            .lock-overlay .lock-icon svg {
+                width: 22px;
+                height: 22px;
+                color: var(--accent-a);
+            }
+
+    .song-genre-tag {
+        display: inline-block;
+        font-size: .62rem;
+        font-weight: 600;
+        letter-spacing: .06em;
+        text-transform: uppercase;
+        color: var(--accent-c);
+        margin-bottom: .4rem;
+    }
+
+    .song-card.locked .song-genre-tag {
+        color: var(--muted);
+    }
+
+    .song-name {
+        font-family: 'Unbounded', sans-serif;
+        font-weight: 700;
+        font-size: .92rem;
+        margin: 0 0 .2rem;
+        color: var(--text);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .song-artist {
+        font-size: .78rem;
+        color: var(--muted);
+        margin: 0 0 .05rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .song-album {
+        font-size: .72rem;
+        color: var(--muted);
+        opacity: .75;
+        margin: 0 0 .7rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .song-meta-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: .5rem;
+    }
+
+    .song-duration {
+        font-size: .74rem;
+        color: var(--muted);
+        font-variant-numeric: tabular-nums;
+    }
+
+    .package-chip {
+        font-size: .62rem;
+        font-weight: 600;
+        letter-spacing: .03em;
+        text-transform: uppercase;
+        padding: .25rem .55rem;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: var(--panel-2);
+        color: var(--muted);
+    }
+
+        .package-chip.unlocked {
+            color: var(--accent-c);
+            border-color: rgba(45, 224, 198, .35);
+        }
+
+        .package-chip.locked {
+            color: var(--accent-a);
+            border-color: rgba(255, 61, 104, .35);
+        }
+
+    .upgrade-note {
+        margin-top: .6rem;
+        font-size: .68rem;
+        color: var(--muted);
+        text-align: center;
+        line-height: 1.3;
+    }
+
+        .upgrade-note strong {
+            color: var(--text);
+        }
+
+    .no-results {
+        display: none;
+        text-align: center;
+        padding: 3rem 1rem;
+        color: var(--muted);
+        font-size: .85rem;
+    }
+
+    /* --- Toast --- */
+    .locked-toast {
+        position: fixed;
+        left: 50%;
+        bottom: 1.6rem;
+        transform: translateX(-50%) translateY(12px);
+        background: var(--panel-2);
+        border: 1px solid var(--line);
+        color: var(--text);
+        font-size: .8rem;
+        padding: .75rem 1.1rem;
+        border-radius: 10px;
+        box-shadow: 0 10px 30px rgba(0,0,0,.4);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity .2s ease, transform .2s ease;
+        z-index: 50;
+    }
+
+        .locked-toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .locked-toast strong {
+            color: var(--accent-c);
+        }
+
+    @@media (max-width: 560px) {
+        .songs-toolbar {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .filter-select {
+            width: 100%;
+        }
+    }
+</style>
+
+<div id="page-content">
+    <section class="songs-hero">
+        <h1>Tüm Şarkılar</h1>
+        <p>Sistemdeki bütün şarkıları görebilirsin.</p>
+        <p class="hero-note">Paketinin izin vermediği şarkıları dinleyemezsin, ancak hepsini listede görebilirsin.</p>
+    </section>
+
+    <section class="elite-recs-section">
+        <div class="elite-recs-card @(isEliteMember ? "" : "is-locked")">
+            <div class="elite-recs-head">
+                <div class="elite-recs-title-wrap">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                    <h2 class="elite-recs-title">Bunları da sevebilirsiniz</h2>
+                </div>
+                <span class="elite-badge">Elit Üyelere Özel</span>
+            </div>
+            <p class="elite-recs-sub">Dinleme zevkine göre seçtiğimiz 5 öneri.</p>
+
+            @if (isEliteMember && recommendedSongs != null && recommendedSongs.Any())
+            {
+                <div class="elite-recs-track">
+                    @foreach (var rec in recommendedSongs.Take(5))
+                    {
+                        <div class="elite-rec-card" data-song-id="@rec.SongId">
+                            <div class="elite-rec-cover">
+                                <img src="@rec.CoverImageUrl" alt="@rec.SongName cover" loading="lazy">
+                                <button type="button" class="elite-rec-play-btn" aria-label="Play @rec.SongName">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg>
+                                </button>
+                            </div>
+                            <div class="elite-rec-name" title="@rec.SongName">@rec.SongName</div>
+                            <div class="elite-rec-artist" title="@rec.ArtistName">@rec.ArtistName</div>
+                        </div>
+                    }
+                </div>
+            }
+            else if (isEliteMember)
+            {
+                @* Elit üye ama şu an için öneri üretilememiş*@
+                <div class="elite-empty-panel">
+                    <div class="elite-empty-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    </div>
+                    <p class="elite-empty-title">Henüz bir önerimiz yok</p>
+                    <p class="elite-empty-sub">Birkaç şarkı daha dinledikçe sana özel önerileri burada göstermeye başlayacağız.</p>
+                </div>
+            }
+            else
+            {
+                <div class="elite-locked-teaser">
+                    <div class="elite-locked-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="10" rx="2"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path></svg>
+                    </div>
+                    <div class="elite-locked-text">
+                        <p class="elite-locked-title">Bu öneriler elit üyelere özel</p>
+                        <p class="elite-locked-sub">Elit üye ol, sana özel 5 öneriyi keşfet.</p>
+                    </div>
+                    <button type="button" class="elite-locked-cta">Elit üye ol</button>
+                </div>
+            }
+        </div>
+    </section>
+
+    <main class="songs-container">
+        <div class="songs-toolbar">
+            <div class="search-box">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <input type="text" class="search-input" id="songSearch" placeholder="Şarkı, sanatçı veya albüm ara...">
+            </div>
+
+            <select class="filter-select" id="genreFilter">
+                <option value="all">Tüm türler</option>
+                @foreach (var genre in genres)
+                {
+                    <option value="@genre">@genre</option>
+                }
+            </select>
+
+            <select class="filter-select" id="sortSelect">
+                <option value="default">Sırala: Varsayılan</option>
+                <option value="name-asc">İsim (A-Z)</option>
+                <option value="name-desc">İsim (Z-A)</option>
+                <option value="duration-asc">Süre (kısa - uzun)</option>
+                <option value="duration-desc">Süre (uzun - kısa)</option>
+            </select>
+        </div>
+
+        <div class="results-count" id="resultsCount">@(Model?.Count ?? 0) şarkı listeleniyor</div>
+
+        <div class="song-grid" id="songGrid">
+            @foreach (var song in Model)
+            {
+                var isLocked = song.PackageLevel > userPackageLevel;
+                var lockedClass = isLocked ? "locked" : "";
+                <div class="song-card @* @lockedClass" *@
+                     data-song-id="@song.SongId"
+                     data-name="@song.SongName"
+                     data-artist="@song.ArtistName"
+                     data-genre="@song.GenreName"
+                     data-duration="@song.Duration"
+                     data-required-package="@song.PackageName"
+                     data-locked="@isLocked.ToString().ToLower()">
+
+                    <div class="song-cover">
+                        <img src="@song.CoverImageUrl" alt="@song.SongName cover" loading="lazy">
+
+                        @if (isLocked)
+                        {
+                            <div class="lock-overlay">
+                                <div class="lock-icon">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="10" rx="2"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path></svg>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <button type="button" class="cover-play-btn play-toggle" aria-label="Play @song.SongName">
+                                <svg class="icon-play" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg>
+                                <svg class="icon-pause" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="display:none"><rect x="5" y="3" width="5" height="18" rx="1"></rect><rect x="14" y="3" width="5" height="18" rx="1"></rect></svg>
+                            </button>
+                        }
+                    </div>
+
+                    <div class="song-genre-tag">@song.GenreName</div>
+                    <div class="song-name" title="@song.SongName">@song.SongName</div>
+                    <div class="song-artist" title="@song.ArtistName">@song.ArtistName</div>
+
+                    <div class="song-meta-row">
+                        <span class="song-duration">@song.Duration</span>
+                        <span class="package-chip @(isLocked ? " locked" : "unlocked")">@song.PackageName</span>
+                    </div>
+
+                    @if (isLocked)
+                    {
+                        <div class="upgrade-note"><strong>@song.PackageName</strong> paketi gerekiyor — dinlemek için yükselt.</div>
+                    }
+                </div>
+            }
+        </div>
+
+        <div class="no-results" id="noResults">Aramanla eşleşen şarkı bulunamadı.</div>
+    </main>
+</div>
+
+<div class="locked-toast" id="lockedToast">Bu şarkıyı dinlemek için <strong id="lockedToastPkg">Premium</strong> paketine yükseltmen gerekiyor.</div>
+
+<script>
+    (function () {
+        var grid = document.getElementById('songGrid');
+        var cards = Array.prototype.slice.call(grid.querySelectorAll('.song-card'));
+        var searchInput = document.getElementById('songSearch');
+        var genreFilter = document.getElementById('genreFilter');
+        var sortSelect = document.getElementById('sortSelect');
+        var resultsCount = document.getElementById('resultsCount');
+        var noResults = document.getElementById('noResults');
+        var toast = document.getElementById('lockedToast');
+        var toastPkg = document.getElementById('lockedToastPkg');
+        var toastTimer = null;
+
+        function applyFilters() {
+            var query = searchInput.value.trim().toLowerCase();
+            var genre = genreFilter.value;
+            var visibleCount = 0;
+
+            cards.forEach(function (card) {
+                var name = card.dataset.name.toLowerCase();
+                var artist = card.dataset.artist.toLowerCase();
+                var album = card.dataset.album.toLowerCase();
+                var cardGenre = card.dataset.genre;
+
+                var matchesQuery = !query || name.indexOf(query) > -1 || artist.indexOf(query) > -1 || album.indexOf(query) > -1;
+                var matchesGenre = genre === 'all' || cardGenre === genre;
+                var visible = matchesQuery && matchesGenre;
+
+                card.style.display = visible ? '' : 'none';
+                if (visible) visibleCount++;
+            });
+
+            resultsCount.textContent = visibleCount + ' şarkı listeleniyor';
+            noResults.style.display = visibleCount === 0 ? 'block' : 'none';
+        }
+
+        function applySort() {
+            var mode = sortSelect.value;
+            if (mode === 'default') {
+                cards.forEach(function (card) { grid.appendChild(card); });
+                return;
+            }
+
+            var sorted = cards.slice().sort(function (a, b) {
+                if (mode === 'name-asc') return a.dataset.name.localeCompare(b.dataset.name);
+                if (mode === 'name-desc') return b.dataset.name.localeCompare(a.dataset.name);
+                if (mode === 'duration-asc') return parseInt(a.dataset.durationSeconds, 10) - parseInt(b.dataset.durationSeconds, 10);
+                if (mode === 'duration-desc') return parseInt(b.dataset.durationSeconds, 10) - parseInt(a.dataset.durationSeconds, 10);
+                return 0;
+            });
+
+            sorted.forEach(function (card) { grid.appendChild(card); });
+        }
+
+        searchInput.addEventListener('input', applyFilters);
+        genreFilter.addEventListener('change', applyFilters);
+        sortSelect.addEventListener('change', applySort);
+
+        // Locked card interaction — sadece görsel geri bildirim, gerçek oynatma yok.
+        cards.forEach(function (card) {
+            if (card.dataset.locked === 'true') {
+                card.addEventListener('click', function () {
+                    card.classList.remove('shake');
+                    void card.offsetWidth; // reflow to restart animation
+                    card.classList.add('shake');
+
+                    toastPkg.textContent = card.dataset.requiredPackage;
+                    toast.classList.add('show');
+                    clearTimeout(toastTimer);
+                    toastTimer = setTimeout(function () {
+                        toast.classList.remove('show');
+                    }, 2200);
+                });
+            }
+        });
+
+        // Play/Pause görünümü — gerçek audio bağlantısı yok, sadece UI state.
+        var currentlyPlayingBtn = null;
+        document.querySelectorAll('.play-toggle').forEach(function (btn) {
+            btn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                var isPlaying = btn.classList.contains('is-playing');
+
+                if (currentlyPlayingBtn && currentlyPlayingBtn !== btn) {
+                    currentlyPlayingBtn.classList.remove('is-playing');
+                    currentlyPlayingBtn.querySelector('.icon-play').style.display = '';
+                    currentlyPlayingBtn.querySelector('.icon-pause').style.display = 'none';
+                }
+
+                btn.classList.toggle('is-playing', !isPlaying);
+                btn.querySelector('.icon-play').style.display = isPlaying ? '' : 'none';
+                btn.querySelector('.icon-pause').style.display = isPlaying ? 'none' : '';
+
+                currentlyPlayingBtn = isPlaying ? null : btn;
+            });
+        });
+    })();
+</script>

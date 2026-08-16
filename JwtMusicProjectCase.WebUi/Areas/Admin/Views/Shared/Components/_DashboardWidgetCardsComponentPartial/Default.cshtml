@@ -1,0 +1,40 @@
+﻿@model DashboardStatisticsDto
+
+<div class="stat-grid">
+    <div class="stat-card">
+        <div class="stat-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /></svg></div>
+        <div class="stat-value">@Model.TotalUsers</div>
+        <div class="stat-label">Total Users</div>
+        <div class="stat-delta up">↑ 4.2% bu ay</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M9 18V5l12-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" /></svg></div>
+        <div class="stat-value">@Model.TotalSongs</div>
+        <div class="stat-label">Total Songs</div>
+        <div class="stat-delta up">↑ 2.1% bu ay</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="8" r="3.2" /><path d="M5 21c0-3.9 3.1-7 7-7s7 3.1 7 7" /></svg></div>
+        <div class="stat-value">@Model.TotalArtists</div>
+        <div class="stat-label">Total Artists</div>
+        <div class="stat-delta up">↑ 1.4% bu ay</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6h16M4 12h10M4 18h6" /></svg></div>
+        <div class="stat-value">@Model.TotalGenres</div>
+        <div class="stat-label">Total Genres</div>
+        <div class="stat-delta">Değişim yok</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M21 8l-9-5-9 5 9 5 9-5Z" /><path d="M3 8v8l9 5 9-5V8" /></svg></div>
+        <div class="stat-value">@Model.TotalPackages</div>
+        <div class="stat-label">Total Packages</div>
+        <div class="stat-delta up">↑ 1 yeni</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><polygon points="10 8 16 12 10 16 10 8" /><circle cx="12" cy="12" r="9" /></svg></div>
+        <div class="stat-value">@Model.TotalListens</div>
+        <div class="stat-label">Total Plays</div>
+        <div class="stat-delta up">↑ 12.8% bu ay</div>
+    </div>
+</div>

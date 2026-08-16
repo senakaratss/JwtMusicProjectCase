@@ -1,0 +1,59 @@
+﻿@model List<UserListeningHistoryDto>
+@{
+    var historyGroups = Model.OrderByDescending(x => x.ListenDate).GroupBy(x =>
+            {
+                var date = x.ListenDate.Date;
+                var today = DateTime.Today;
+
+                if (date == today) return "Today";
+                if (date == today.AddDays(-1)) return "Yesterday";
+                if (date >= today.AddDays(-7)) return "This week";
+                return "Older";
+            }).ToList();
+}
+<div class="tab-panel" id="panel-history">
+    <div class="card">
+        <div class="card-head">
+            <div class="card-head-title">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 3"></path></svg>
+                <h2>Listening history</h2>
+            </div>
+            <span>Most recent first</span>
+        </div>
+        @foreach (var group in historyGroups)
+        {
+            <div class="history-group">
+                <p class="history-group-label">
+                    @group.Key
+                </p>
+                @{
+                    var idx = 0;
+                }
+                @foreach (var track in group)
+                {
+                    idx++;
+                    <div class="track-row">
+                        <div class="track-index">
+                            <span class="idx-num">@idx</span>
+                            <svg class="idx-play" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7Z"></path></svg>
+                        </div>
+                        <div class="track-thumb">
+                            <img src="@track.CoverImageUrl" alt="@track.SongName" />
+                        </div>
+                        <div class="track-info">
+                            <div class="track-title">
+                                @track.SongName
+                            </div>
+                            <div class="track-artist">
+                                @track.ArtistName
+                            </div>
+                        </div>
+                        <div class="track-meta">
+                            @track.ListenDate.ToString("dd MMM yyyy")
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>

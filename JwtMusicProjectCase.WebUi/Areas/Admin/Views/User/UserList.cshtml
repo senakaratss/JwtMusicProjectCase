@@ -1,0 +1,179 @@
+﻿@model List<ResultUserDto>
+@{
+    ViewData["Title"] = "UsersList";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+@{
+  
+    var premiumCount = Model.Count(u => u.PackageName != "Basic");
+    var adminCount = Model.Count(u => u.RoleName == "Admin");
+}
+
+<style>
+    .user-cell {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+        .user-cell .email {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            margin-top: 2px;
+        }
+
+    .role-select-form {
+        display: inline-block;
+    }
+
+    .role-select {
+        background: var(--bg-surface-3);
+        border: 1px solid var(--border-subtle);
+        border-radius: 999px;
+        color: var(--text-primary);
+        font-size: 12px;
+        font-weight: 600;
+        padding: 6px 28px 6px 12px;
+        cursor: pointer;
+    }
+
+        .role-select:focus {
+            border-color: var(--accent);
+        }
+
+        .role-select.role-Admin {
+            color: var(--danger);
+            border-color: var(--danger-soft);
+            background: var(--danger-soft);
+        }
+
+        .role-select.role-Editor {
+            color: var(--violet);
+            border-color: var(--violet-soft);
+            background: var(--violet-soft);
+        }
+
+        .role-select.role-User {
+            color: var(--text-secondary);
+        }
+</style>
+
+<div class="flex items-center mb-16" style="justify-content:space-between; flex-wrap:wrap; gap:12px;">
+    <div>
+        <h2 class="font-display" style="font-size:19px;">User Management</h2>
+        <p class="text-tertiary" style="font-size:12.5px; margin:2px 0 0;">Kullanıcıları görüntüle ve rol ata.</p>
+    </div>
+</div>
+
+<div class="stat-grid" style="grid-template-columns:repeat(3,1fr);">
+    <div class="stat-card">
+        <div class="stat-icon">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
+        </div>
+        <div class="stat-value">@Model.Count</div>
+        <div class="stat-label">Toplam Kullanıcı</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 2 7l10 5 10-5-10-5Z" /><path d="m2 17 10 5 10-5" /><path d="m2 12 10 5 10-5" /></svg>
+        </div>
+        <div class="stat-value">@premiumCount</div>
+        <div class="stat-label">Ücretli Paket</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 2 22h20L12 2Z" /></svg>
+        </div>
+        <div class="stat-value">@adminCount</div>
+        <div class="stat-label">Admin</div>
+    </div>
+</div>
+
+<div class="card" data-table-root>
+    <div class="table-toolbar">
+        <div class="field-search">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></svg>
+            <input type="text" data-table-search placeholder="Kullanıcı ara..." />
+        </div>
+        <div class="toolbar-filters">
+            <select class="field-select">
+                <option value="">Tüm Roller</option>
+                @foreach(var role in ViewBag.Roles)
+                {
+                    <option value="@role">@role</option>
+                }
+            </select>
+            <select class="field-select">
+                <option value="">Tüm Paketler</option>
+            </select>
+        </div>
+    </div>
+
+    <div style="overflow-x:auto;">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th data-sort-key="username">User <span class="sort-arrow">↕</span></th>
+                    <th data-sort-key="package">Package <span class="sort-arrow">↕</span></th>
+                    <th data-sort-key="role">Role <span class="sort-arrow">↕</span></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var u in Model)
+                {
+                    <tr>
+                        <td data-col="username">
+                            <div class="user-cell">
+                                <div class="avatar">@u.UserName.Substring(0, 1).ToUpper()</div>
+                                <div>
+                                    <div class="primary">@u.UserName</div>
+                                    <div class="email">@u.Email</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td data-col="package">
+                            @{
+                                var packageBadge = u.PackageName switch
+                                {
+                                    "Premium" => "badge-warning",
+                                    "Family" => "badge-violet",
+                                    "Student" => "badge-success",
+                                    _ => "badge-neutral"
+                                };
+                            }
+                            <span class="badge @packageBadge">@u.PackageName</span>
+                        </td>
+                        <td data-col="role">
+                            <form class="role-select-form" asp-controller="User" asp-area="Admin" asp-action="AssignRole" method="post">
+                                <input type="hidden" name="UserId" value="@u.Id" />
+                                <select class="role-select role-@u.RoleName" name="RoleName" onchange="this.className='role-select role-' + this.value; this.form.submit();">
+                                    @foreach (var r in ViewBag.Roles)
+                                    {
+                                        if (r == u.RoleName)
+                                        {
+                                            <option value="@r" selected>@r</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@r">@r</option>
+                                        }
+                                    } 
+                                </select>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="table-footer">
+        <span class="text-tertiary" style="font-size:12.5px;">@Model.Count sonuçtan 1– @Model.Count arası gösteriliyor</span>
+        <div class="pagination">
+            <button class="page-btn" disabled>‹</button>
+            <button class="page-btn active">1</button>
+            <button class="page-btn">›</button>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,282 @@
+﻿@model PlaylistDetailViewModel
+@{
+    ViewData["Title"] = "PlaylistDetail";
+    Layout = "~/Views/Shared/_MainLayout.cshtml";
+}
+<style>
+    .playlist-row td {
+        position: relative;
+    }
+
+    .btn-remove-from-playlist {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        border: none;
+        background:transparent;
+        color: #e53e3e;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: opacity 0.15s ease, transform 0.15s ease, background 0.15s ease;
+        cursor: pointer;
+    }
+
+        .btn-remove-from-playlist svg {
+            width: 16px;
+            height: 16px;
+        }
+
+    .playlist-row:hover .btn-remove-from-playlist {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    .btn-remove-from-playlist:hover {
+        background: rgba(229, 62, 62, 0.15);
+        color: #e53e3e;
+    }
+
+    .playlist-row.is-removing {
+        opacity: 0.4;
+        pointer-events: none;
+    }
+
+    .playlist-row.row-removed {
+        animation: playlist-row-fade-out 0.25s ease forwards;
+    }
+
+    @@keyframes playlist-row-fade-out {
+        to {
+            opacity: 0;
+            transform: translateX(12px);
+        }
+    }
+
+    /* Toast (shared with add-to-playlist modal styling) */
+    .playlist-toast {
+        position: fixed;
+        left: 50%;
+        bottom: 32px;
+        transform: translate(-50%, 12px);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: #1db954;
+        color: #0b1f10;
+        font-size: 0.85rem;
+        font-weight: 600;
+        padding: 10px 16px;
+        border-radius: 999px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s ease, transform 0.2s ease;
+        white-space: nowrap;
+        z-index: 1080;
+    }
+
+        .playlist-toast.show {
+            opacity: 1;
+            transform: translate(-50%, 0);
+        }
+
+        .playlist-toast .toast-check {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 16px;
+            height: 16px;
+        }
+
+            .playlist-toast .toast-check svg {
+                width: 14px;
+                height: 14px;
+            }
+</style>
+
+<div class="page-container">
+
+    <!-- Playlist Header -->
+    <div class="pb-5" style="padding-top:110px;">
+        <div class="row align-items-end">
+            <div class="col-auto">
+                <div class="playlist-cover-stack shadow-lg r r-2x overflow-hidden" style="width:220px;height:220px;">
+                    @{
+                        var coverImages = Model.PlaylistSongs?
+                            .Where(s => !string.IsNullOrEmpty(s.CoverImageUrl))
+                            .Select(s => s.CoverImageUrl)
+                            .Distinct()
+                            .Take(4)
+                            .ToList() ?? new List<string>();
+                    }
+                    @if (coverImages.Count >= 4)
+                    {
+                        <div class="d-flex flex-wrap" style="width:100%;height:100%;">
+                            @foreach (var img in coverImages)
+                            {
+                                <img src="@img" alt="cover" style="width:50%;height:50%;object-fit:cover;" />
+                            }
+                        </div>
+                    }
+                    else if (coverImages.Count > 0)
+                    {
+                        <img src="@coverImages.First()" alt="@Model.PlaylistName" style="width:100%;height:100%;object-fit:cover;" />
+                    }
+                    else
+                    {
+                        <div class="w-100 h-100 d-flex align-items-center justify-content-center bg-black-10">
+                            <i data-feather="music" style="width:64px;height:64px;"></i>
+                        </div>
+                    }
+                </div>
+            </div>
+            <div class="col">
+                <span class="text-muted text-uppercase text-sm l-s-1x">Playlist</span>
+                <h1 class="display-4 text-white font-weight-bold mb-3">@Model.PlaylistName</h1>
+                <div class="d-flex align-items-center text-muted">
+                    <span>@(Model.PlaylistSongs?.Count ?? 0) şarkı</span>
+                </div>
+                <div class="mt-4">
+                    <button type="button" class="btn btn-rounded gd-primary text-white px-4" id="playAllBtn">
+                        <i data-feather="play" class="mr-1"></i> Tümünü Çal
+                    </button>
+                    <button type="button" class="btn btn-rounded btn-icon no-shadow no-bg border">
+                        <i data-feather="shuffle"></i>
+                    </button>
+                    <button type="button" class="btn btn-rounded btn-icon no-shadow no-bg border">
+                        <i data-feather="heart"></i>
+                    </button>
+                    <button type="button" class="btn btn-rounded btn-icon no-shadow no-bg border" data-toggle="dropdown">
+                        <i data-feather="more-horizontal"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Song List -->
+    <div class="pb-5">
+        @if (Model.PlaylistSongs != null && Model.PlaylistSongs.Any())
+        {
+            <table class="table table-hover text-inherit v-middle" id="playlistTable">
+                <thead>
+                    <tr class="text-muted text-sm border-bottom">
+                        <th class="text-center" style="width:48px;">#</th>
+                        <th>Başlık</th>
+                        <th class="d-none d-md-table-cell">Sanatçı</th>
+                        <th class="text-right pr-4" style="width:90px;">
+                            <i data-feather="clock" style="width:16px;height:16px;"></i>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{ int index = 1; }
+                    @foreach (var song in Model.PlaylistSongs)
+                    {
+                        <tr class="playlist-row"
+                            data-song-id="@song.SongId"
+                            data-audio-src="@song.AudioUrl"
+                            data-song-name="@song.SongName"
+                            data-artist="@song.ArtistName"
+                            data-cover="@song.CoverImageUrl"
+                            style="cursor:pointer;">
+                            <td class="text-center text-muted">
+                                <span class="row-index">@index</span>
+                                <i data-feather="play" class="row-play-icon" style="display:none;width:16px;height:16px;"></i>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <span class="avatar w-40 mr-3 r">
+                                        <img src="@song.CoverImageUrl" alt="@song.SongName" onerror="this.src='/Bepop/assets/img/a1.jpg'">
+                                    </span>
+                                    <div>
+                                        <div class="text-white">@song.SongName</div>
+                                        <div class="text-muted text-sm d-md-none">@song.ArtistName</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="d-none d-md-table-cell text-muted">
+                                @song.ArtistName
+                            </td>
+                            <td class="text-right pr-4 text-muted">
+                                @song.Duration.ToString(@song.Duration.Hours > 0 ? "h\\:mm\\:ss" : "m\\:ss")
+                            </td>
+
+                            <td class="text-right pr-4">
+                                <a href="/Playlist/RemoveSongFromPlaylist?songId=@song.SongId&playlistId=@Model.PlaylistId"
+                                        class="btn-remove-from-playlist"
+                                        title="Playlistten kaldır">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path></svg>
+                                </a>
+                            </td>
+                        </tr>
+                        index++;
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <div class="text-center py-5 text-muted">
+                <i data-feather="music" style="width:48px;height:48px;"></i>
+                <p class="mt-3">Bu playlist'te henüz şarkı yok.</p>
+            </div>
+        }
+    </div>
+    <div id="playlistToast" class="playlist-toast">
+        <span class="toast-check">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+        </span>
+        <span id="playlistToastText" class="toast-text">Playlistten kaldırıldı</span>
+    </div>
+</div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var rows = document.querySelectorAll('.playlist-row');
+            var playAllBtn = document.getElementById('playAllBtn');
+            var audioEl = document.querySelector('#plyrist audio');
+
+            function playSong(row) {
+                if (!audioEl) return;
+                audioEl.src = row.getAttribute('data-audio-src');
+                audioEl.play();
+                rows.forEach(function (r) {
+                    r.classList.remove('text-primary');
+                    r.querySelector('.row-index').style.display = 'inline';
+                    r.querySelector('.row-play-icon').style.display = 'none';
+                });
+                row.classList.add('text-primary');
+                row.querySelector('.row-index').style.display = 'none';
+                row.querySelector('.row-play-icon').style.display = 'inline';
+            }
+
+            rows.forEach(function (row) {
+                row.addEventListener('click', function () {
+                    playSong(row);
+                });
+                row.addEventListener('mouseenter', function () {
+                    row.querySelector('.row-index').style.display = 'none';
+                    row.querySelector('.row-play-icon').style.display = 'inline';
+                });
+                row.addEventListener('mouseleave', function () {
+                    if (!row.classList.contains('text-primary')) {
+                        row.querySelector('.row-index').style.display = 'inline';
+                        row.querySelector('.row-play-icon').style.display = 'none';
+                    }
+                });
+            });
+
+            if (playAllBtn && rows.length > 0) {
+                playAllBtn.addEventListener('click', function () {
+                    playSong(rows[0]);
+                });
+            }
+        });
+            document.querySelectorAll('.btn-remove-from-playlist').forEach(function (btn) {
+        btn.addEventListener('click', function (e) {
+            e.stopPropagation();
+        });
+    });
+    </script>

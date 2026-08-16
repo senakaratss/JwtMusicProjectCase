@@ -1,0 +1,153 @@
+﻿@model List<ResultArtistDto>
+@{
+    ViewData["Title"] = "ArtistList";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+@{
+    var verifiedCount = Model.Count(a => a.IsVerified);
+    var countryCount = Model.Select(a => a.Country).Distinct().Count();
+}
+
+<style>
+    .row-actions a.btn {
+        text-decoration: none;
+    }
+</style>
+
+<div class="flex items-center mb-16" style="justify-content:space-between; flex-wrap:wrap; gap:12px;">
+    <div>
+        <h2 class="font-display" style="font-size:19px;">Artist Management</h2>
+        <p class="text-tertiary" style="font-size:12.5px; margin:2px 0 0;">Sanatçıları görüntüle, ekle, düzenle veya sil.</p>
+    </div>
+    <a class="btn btn-primary" href="/Admin/Artist/CreateArtist/" style="text-decoration:none;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14" /></svg>
+        Add Artist
+    </a>
+</div>
+
+<div class="stat-grid" style="grid-template-columns:repeat(3,1fr);">
+    <div class="stat-card">
+        <div class="stat-icon">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
+        </div>
+        <div class="stat-value">@Model.Count</div>
+        <div class="stat-label">Toplam Sanatçı</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m9 12 2 2 4-4" /><circle cx="12" cy="12" r="10" /></svg>
+        </div>
+        <div class="stat-value">@verifiedCount</div>
+        <div class="stat-label">Onaylı Sanatçı</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" /><path d="M2 12h20M12 2a15 15 0 0 1 0 20 15 15 0 0 1 0-20Z" /></svg>
+        </div>
+        <div class="stat-value">@countryCount</div>
+        <div class="stat-label">Ülke Sayısı</div>
+    </div>
+</div>
+
+<div class="card" data-table-root>
+    <div class="table-toolbar">
+        <div class="field-search">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></svg>
+            <input type="text" data-table-search placeholder="Sanatçı ara..." />
+        </div>
+    </div>
+
+    <div style="overflow-x:auto;">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th data-sort-key="name">Artist <span class="sort-arrow">↕</span></th>
+                    <th data-sort-key="country">Country <span class="sort-arrow">↕</span></th>
+                    <th data-sort-key="status">Status <span class="sort-arrow">↕</span></th>
+                    <th data-sort-key="created">Created <span class="sort-arrow">↕</span></th>
+                    <th style="text-align:right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var a in Model)
+                {
+                    <tr>
+                        <td data-col="name">
+                            <div class="cell-media">
+                                @if (!string.IsNullOrEmpty(a.ArtistImageUrl))
+                                {
+                                    <img class="avatar-round" src="@a.ArtistImageUrl" alt="@a.ArtistName" />
+                                }
+                                else
+                                {
+                                    <div class="avatar">@a.ArtistName.Substring(0, 1)</div>
+                                }
+                                <div>
+                                    <div class="primary">@a.ArtistName</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td data-col="country">
+                            <span class="badge badge-violet">@a.Country</span>
+                        </td>
+                        <td data-col="status">
+                            @if (a.IsVerified)
+                            {
+                                <span class="badge badge-success">Verified</span>
+                            }
+                            else
+                            {
+                                <span class="badge badge-neutral">Unverified</span>
+                            }
+                        </td>
+                        <td data-col="created" class="text-tertiary" style="font-size:12.5px;">@a.CreatedDate.ToString("d MMM yyyy")</td>
+                        <td>
+                            <div class="row-actions">
+                                <a class="btn btn-outline btn-icon btn-sm" title="Edit" href="/Admin/Artist/UpdateArtist/@a.ArtistId">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.1 2.1 0 0 1 3 3L12 15l-4 1 1-4Z" /></svg>
+                                </a>
+                                <button class="btn btn-danger btn-icon btn-sm" title="Delete"
+                                        data-confirm-delete data-name="@a.ArtistName"
+                                        data-modal-open="deleteArtistModal" data-target-form="#deleteArtistForm-@a.ArtistId">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6" /></svg>
+                                </button>
+                                <form id="deleteArtistForm-@a.ArtistId" asp-area="Admin" asp-controller="Artist" asp-action="DeleteArtist" asp-route-id="@a.ArtistId" method="post" style="display:none;"></form>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="table-footer">
+        <span class="text-tertiary" style="font-size:12.5px;">@Model.Count sonuçtan 1–@Model.Count arası gösteriliyor</span>
+        <div class="pagination">
+            <button class="page-btn" disabled>‹</button>
+            <button class="page-btn active">1</button>
+            <button class="page-btn">›</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-backdrop" id="deleteArtistModal">
+    <div class="modal-panel">
+        <div class="modal-header">
+            <h3>Sanatçıyı Sil</h3>
+            <button class="modal-close" data-modal-close>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12" /></svg>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="confirm-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" /></svg>
+            </div>
+            <p style="margin:0 0 4px; font-size:14px; font-weight:600;">"<span data-confirm-name>bu sanatçıyı</span>" silinsin mi?</p>
+            <p class="text-tertiary" style="font-size:12.5px; margin:0;">Sanatçıya bağlı şarkılar etkilenebilir. Bu işlem geri alınamaz.</p>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" data-modal-close>Vazgeç</button>
+            <button class="btn btn-danger" data-confirm-submit>Sil</button>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,15 @@
+﻿
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+@await Component.InvokeAsync("_DashboardWidgetCardsComponentPartial")
+
+<div class="row g-3">
+
+    @await Component.InvokeAsync("_DashboardLatestSongsComponentPartial")
+
+    @await Component.InvokeAsync("_DashboardTopSongsComponentPartial")
+   
+</div>

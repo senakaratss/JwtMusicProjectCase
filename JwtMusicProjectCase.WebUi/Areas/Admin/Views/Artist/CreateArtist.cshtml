@@ -1,0 +1,226 @@
+﻿@model CreateArtistDto
+@{
+    ViewData["Title"] = "CreateArtist";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<style>
+    .form-back {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12.5px;
+        color: var(--text-tertiary);
+        text-decoration: none;
+        margin-bottom: 12px;
+        width: fit-content;
+    }
+
+        .form-back:hover {
+            color: var(--text-primary);
+        }
+
+    .profile-hero {
+        position: relative;
+        margin-bottom: 56px;
+        height: 150px;
+    }
+
+    .cover-wrap {
+        width: 100%;
+        height: 100%;
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        background: linear-gradient(135deg,var(--violet),var(--accent) 70%);
+        border: 1px solid var(--border-subtle);
+    }
+
+        .cover-wrap img.cover-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+    .profile-avatar-wrap {
+        position: absolute;
+        left: 24px;
+        bottom: -40px;
+        width: 88px;
+        height: 88px;
+    }
+
+    .profile-avatar {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 88px;
+        height: 88px;
+        border-radius: 50%;
+        border: 4px solid var(--bg-app);
+        object-fit: cover;
+        background: linear-gradient(135deg,var(--accent),var(--violet));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--accent-ink);
+        font-family: var(--font-display);
+        font-size: 30px;
+        font-weight: 700;
+    }
+
+    .form-columns {
+        display: grid;
+        grid-template-columns: 1fr 260px;
+        gap: 20px;
+        align-items: start;
+    }
+
+    @@media (max-width: 820px) {
+        .form-columns {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .meta-card {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-md);
+        padding: 16px;
+        font-size: 12px;
+        color: var(--text-tertiary);
+        line-height: 1.5;
+    }
+
+    .field-with-icon {
+        position: relative;
+    }
+
+        .field-with-icon svg {
+            position: absolute;
+            left: 13px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-tertiary);
+            pointer-events: none;
+        }
+
+        .field-with-icon input.input {
+            padding-left: 36px;
+        }
+</style>
+
+<a href="/Admin/Artist/ArtistList" class="form-back">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6" /></svg>
+    Sanatçılara dön
+</a>
+
+<form asp-controller="Artist" asp-area="Admin" asp-action="CreateArtist" method="post">
+    <div class="profile-hero">
+        <div class="cover-wrap">
+            <img class="cover-img" id="coverPreview" alt="Cover" style="display:none;" onerror="this.style.display='none';" />
+        </div>
+
+        <div class="profile-avatar-wrap">
+            <img class="profile-avatar" id="avatarPreview" style="display:none;" onerror="this.style.display='none'; document.getElementById('avatarFallback').style.display='flex';" />
+            <div class="profile-avatar" id="avatarFallback">?</div>
+        </div>
+    </div>
+
+    <div style="margin-bottom:20px;">
+        <h2 class="font-display" style="font-size:19px; margin:0;">Add Artist</h2>
+        <p class="text-tertiary" style="font-size:12.5px; margin:2px 0 0;">Sanatçı bilgilerini gir ve kaydet.</p>
+    </div>
+
+    <div class="form-columns">
+        <div class="card" style="padding:20px;">
+            <div class="form-grid single">
+                <div class="field">
+                    <label>Artist Name <span class="req">*</span></label>
+                    <input class="input" type="text" id="artistNameInput" asp-for="ArtistName" placeholder="Örn. Ada Yıldız" required />
+                    <span class="error-msg">Sanatçı adı zorunludur.</span>
+                </div>
+
+                <div class="field">
+                    <label>Artist Image URL</label>
+                    <div class="field-with-icon">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="9" cy="9" r="2" /><path d="m21 15-5-5L5 21" /></svg>
+                        <input class="input" type="url" id="artistImageUrlInput" asp-for="ArtistImageUrl" placeholder="https://.../sanatci-fotografi.jpg" />
+                    </div>
+                    <span class="hint">Kare (min. 400×400) bir görsel URL'si önerilir.</span>
+                </div>
+
+                <div class="field">
+                    <label>Cover Image URL</label>
+                    <div class="field-with-icon">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="9" cy="9" r="2" /><path d="m21 15-5-5L5 21" /></svg>
+                        <input class="input" type="url" id="coverImageUrlInput" asp-for="CoverImageUrl" placeholder="https://.../kapak-fotografi.jpg" />
+                    </div>
+                    <span class="hint">Geniş bir görsel (yaklaşık 1200×400) önerilir.</span>
+                </div>
+
+                <div class="field">
+                    <label>Country</label>
+                    <input class="input" type="text" asp-for="Country" list="countryList" placeholder="Örn. Türkiye" />
+                    <datalist id="countryList">
+                        <option value="Türkiye" />
+                        <option value="Almanya" />
+                        <option value="Fransa" />
+                        <option value="Amerika Birleşik Devletleri" />
+                        <option value="Birleşik Krallık" />
+                    </datalist>
+                </div>
+
+                <div class="field">
+                    <label>Bio</label>
+                    <textarea class="input" asp-for="Bio" placeholder="Sanatçı hakkında kısa bir tanıtım yazısı..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:14px;">
+            <div class="meta-card">
+                Görseller dosya olarak yüklenmez; barındırdığınız bir CDN/depolama adresinin URL'sini yapıştırmanız yeterli. Kayıttan sonra sanatçı onay ve tarih bilgileri düzenleme sayfasında görünür.
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-footer" style="border:none; padding:24px 0 0; justify-content:flex-end;">
+        <a href="/Admin/Artist/ArtistList" class="btn btn-outline" style="text-decoration:none;">Vazgeç</a>
+        <button type="submit" class="btn btn-primary">Kaydet</button>
+    </div>
+</form>
+
+@section Scripts {
+    <script>
+        function wirePreview(inputId, imgId, fallbackId) {
+            var input = document.getElementById(inputId);
+            var img = document.getElementById(imgId);
+            if (!input || !img) return;
+            input.addEventListener('input', function () {
+                var url = input.value.trim();
+                if (!url) {
+                    img.style.display = 'none';
+                    img.removeAttribute('src');
+                    if (fallbackId) document.getElementById(fallbackId).style.display = 'flex';
+                    return;
+                }
+                if (fallbackId) document.getElementById(fallbackId).style.display = 'none';
+                img.src = url;
+                img.style.display = 'block';
+            });
+        }
+        wirePreview('coverImageUrlInput', 'coverPreview', null);
+        wirePreview('artistImageUrlInput', 'avatarPreview', 'avatarFallback');
+
+        // keep the fallback initial in sync with the typed artist name
+        var nameInput = document.getElementById('artistNameInput');
+        var fallback = document.getElementById('avatarFallback');
+        if (nameInput && fallback) {
+            nameInput.addEventListener('input', function () {
+                var v = nameInput.value.trim();
+                fallback.textContent = v ? v.charAt(0).toUpperCase() : '?';
+            });
+        }
+    </script>
+}

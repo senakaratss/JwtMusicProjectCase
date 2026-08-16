@@ -1,0 +1,28 @@
+﻿using JwtMusicProjectCase.Business.Abstract;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
+
+namespace JwtMusicProjectCase.WebApi.Controllers
+{
+    [Authorize(Roles ="Admin")]
+    [Route("api/[controller]")]
+    [ApiController]
+    public class UsersController : ControllerBase
+    {
+        private readonly IUserService _userService;
+
+        public UsersController(IUserService userService)
+        {
+            _userService = userService;
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> UserList()
+        {
+            var values = await _userService.TGetAllAsync();
+            return Ok(values);
+        }
+    }
+}

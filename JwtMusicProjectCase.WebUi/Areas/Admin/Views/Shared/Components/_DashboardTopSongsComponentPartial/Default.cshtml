@@ -1,0 +1,38 @@
+﻿@model List<ResultSongDto>
+@{
+    int rank=1;
+}
+<div class="col-12 col-xl-5">
+    <div class="card">
+        <div class="card-header">
+            <h3>En Çok Dinlenen Şarkılar</h3>
+        </div>
+        <div class="card-body" style="padding-top:8px;">
+            @foreach (var item in Model)
+            {
+                <div style="display:flex; align-items:center; gap:14px; padding:11px 0; border-bottom:1px solid var(--border-subtle);">
+                    <div class="text-mono text-tertiary" style="width:20px; font-size:13px;">@rank.ToString("00")</div>
+                    @if (!string.IsNullOrEmpty(item.CoverImageUrl))
+                    {
+                        <div class="cell-media">
+                            <img src="@item.CoverImageUrl" alt="@item.SongName" />
+
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="thumb-fallback" style="width:38px;height:38px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:var(--bg-surface-3);color:var(--text-tertiary);">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 18V5l12-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" /></svg>
+                        </div>
+                    }
+                    <div style="flex:1; min-width:0;">
+                        <div style="font-weight:600; font-size:13px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">@item.SongName</div>
+                        <div class="text-tertiary" style="font-size:11.5px;">@item.ArtistName</div>
+                    </div>
+                    <div class="text-mono text-secondary" style="font-size:12.5px;">@item.ListenCount</div>
+                </div>
+                rank++;
+            }
+        </div>
+    </div>
+</div>
